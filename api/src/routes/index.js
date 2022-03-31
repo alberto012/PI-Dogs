@@ -7,7 +7,6 @@ const { Dog, Temperament } = require("../db");
 const { Router } = require("express");
 const router = Router();
 
-
 const doguiListApi = async () => {
   const dogsUrl = await axios.get(
     `https://api.thedogapi.com/v1/breeds${API_KEY}`
@@ -56,66 +55,66 @@ const todoDogs = async () => {
 //   }
 // });
 
-/////// LISTADO 
+/////// LISTADO
 
-  router.get("/dogs", async (req, res) => {
-    const name = req.query.name;
-    const allDogs = await todoDogs();
-console.log(allDogs);
-    if (name) {
-      let dogsName = await allDogs.filter((e) =>
-        e.name.toLowerCase().includes(name.toLowerCase())
-      );
-      dogsName.length
-        ? res.status(200).json(dogsName)
-        : res.status(404).send("no encontrada");
-    } else {
-      res.status(200).json(allDogs);
-    }
-  });
+router.get("/dogs", async (req, res) => {
+  const name = req.query.name;
+  const allDogs = await todoDogs();
+  console.log(allDogs);
+  if (name) {
+    let dogsName = await allDogs.filter((e) =>
+      e.name.toLowerCase().includes(name.toLowerCase())
+    );
+    dogsName.length
+      ? res.status(200).json(dogsName)
+      : res.status(404).send("Nuestro doguiServer nos informa que no se encontró la raza solicitada");
+  } else {
+    res.status(200).json(allDogs);
+  }
+});
 
 //////////ENCONTRAR POR EL ID
 router.get("/dogs/:id", async (req, res) => {
-    const { id } = req.params;
-    const allDogs = await todoDogs();
-    
-    const Filter = allDogs.find((e) => e.id == id);
-    if (Filter) {
-      res.status(200).json(Filter);
-    } else {
-      res.status(404).send("Ups! no existe");
-    }
-  });
-  
+  const { id } = req.params;
+  const allDogs = await todoDogs();
+console.log(allDogs);
+  const Filter = allDogs.find((e) => e.id == id);
+  if (Filter) {
+    res.status(200).json(Filter);
+  } else {
+    res.status(404).send("Ups! no existe");
+  }
+});
 
 //////AGREGAR PERRO
 
-  router.post("/dog", async (req, res) => {
-    try{
-        const dogsDb= await Dog.findAll();
-        if(!dogsDb.length){
-         let dogsApi= await axios.get(`https://api.thedogapi.com/v1/breeds${API_KEY}`)
-            dogsApi= await dogsApi.data.map((e)=>{
-                return{
-                    name:e.name
-                };
-            })
-            await Dog.bulkCreate(dogsApi);
-            return res.status(200).json(dogsApi);
-        }
-        res.status(200).json(dogsDb);
-    }catch(error){
-     console.log(error);
-    }
+router.post("/dog", async (req, res) => {
+
+  const {name, height, weight, life_span, temperament} = req.body;
+  try {
+    const doguiCreate = await Dog.create({
+      name, height, weight, life_span
+    });
+    const temp = await Temperament.findAll({
+      where: {name: temperament}
+    });
+    doguiCreate.addTemperament(temp)
+    res.send( "Tu nuevo cachorro luce genial!, y fue agregado exitosamente")
+  } catch (error) {
+    res.status(400).send(error)
+  }
+
+
 });
 
 const getAllTemperaments = async () => {
   const apiTemperaments = await axios.get(
     `https://api.thedogapi.com/v1/breeds?api_key=${API_KEY}`
   );
-  const temperamentsFilter = apiTemperaments.data.map((e) => e.temperament);
-
-  const temperaments = temperamentsFilter.map((e) => e?.split(" "));
+  
+  const Filter = apiTemperaments.data.map((e) => e.temperament);
+console.log(Filter)
+  const temperaments = Filter.map((e) => e?.split(" "));
 
   temperaments.forEach((e) => {
     e?.map((e) => {
@@ -132,8 +131,10 @@ const getAllTemperaments = async () => {
 };
 
 /////// TEMPERAMENTO DEL PERRO
+
 router.get("/temperament", async (req, res) => {
   let temperaments = await getAllTemperaments();
   res.status(200).send(temperaments);
 });
+
 module.exports = router;
