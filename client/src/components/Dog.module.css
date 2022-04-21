@@ -1,0 +1,19 @@
+.cardOne{
+  
+    border: 1px solid grey;
+    width: 300px;
+    padding: 16px;
+    min-height: 450px;
+    margin: 10px;
+    height: auto;
+    backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(100px);
+    border-radius: 15px;
+    color:black;
+    font-family:'Patrick Hand', cursive;
+    
+    
+}
+.cardOne:hover{
+    transform:scale(1.1);
+}
