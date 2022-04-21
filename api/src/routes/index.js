@@ -9,27 +9,32 @@ const router = Router();
 
 const doguiListApi = async () => {
   const dogsUrl = await axios.get(
-    `https://api.thedogapi.com/v1/breeds${API_KEY}`
+    `https://api.thedogapi.com/v1/breeds?${API_KEY}`
   );
   const dogsData = await dogsUrl.data.map((d) => {
     return {
       id: d.id,
       name: d.name,
-      weight: d.weight,
-      height: d.height,
+      weight: d.weight.metric
+      // .split("-")[0]
+              // ? Number(d.weight.metric.split("-")[0].trimEnd())
+              // : 0
+              ,
+      height: d.height.metric,
       life_span: d.life_span,
-      image: d.image,
+      image: d.image.url,
       temperament: d.temperament,
+      createDB:false,
     };
   });
   return dogsData;
 };
 const doguisDataBase = async () => {
   return await Dog.findAll({
-    inlclude: {
+    include: {
       model: Temperament,
       attributes: ["name"],
-      througth: {
+      through: {
         attributes: [],
       },
     },
@@ -43,17 +48,6 @@ const todoDogs = async () => {
 };
 /////// agregar por query
 
-// router.get("/", async (req, res) => {
-//   const { name } = req.query;
-//   const allDogs = await todoDogs();
-
-//   if (name) {
-//     const filterDog = allDogs.find((e) => e.name == name);
-//     res.status(200).json(filterDog);
-//   } else {
-//     res.status(200).json(allDogs);
-//   }
-// });
 
 /////// LISTADO
 
@@ -90,10 +84,10 @@ console.log(allDogs);
 
 router.post("/dog", async (req, res) => {
 
-  const {name, height, weight, life_span, temperament} = req.body;
+  const {name, height, weight, life_span, image, temperament} = req.body;
   try {
     const doguiCreate = await Dog.create({
-      name, height, weight, life_span
+      name, image, height, weight, life_span
     });
     const temp = await Temperament.findAll({
       where: {name: temperament}
@@ -103,8 +97,6 @@ router.post("/dog", async (req, res) => {
   } catch (error) {
     res.status(400).send(error)
   }
-
-
 });
 
 const getAllTemperaments = async () => {
@@ -126,7 +118,7 @@ console.log(Filter)
     });
   });
   const temperamentTypes = await Temperament.findAll();
-  // console.log(temperamentTypes);
+  
   return temperamentTypes;
 };
 
@@ -136,5 +128,26 @@ router.get("/temperament", async (req, res) => {
   let temperaments = await getAllTemperaments();
   res.status(200).send(temperaments);
 });
+
+///////// DELETE PERRO
+
+router.delete("/delete/:id", async (req, res)=>{
+  const { id } = req.params;
+  try{
+const doguiDelete= await Dog.destroy({
+  where:{
+    id
+  }
+});
+res.status(200).send(doguiDelete + "Se ha ido")
+  } catch(error){
+    return error
+  }
+});
+
+
+
+
+
 
 module.exports = router;
