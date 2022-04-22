@@ -83,7 +83,7 @@ export default function CreateDog() {
         <button className={s.btnVolver}>Volver</button>
       </NavLink>
       <h1 className={s.h1}>Crea tu personaje</h1>
-      <form  className= {s.formu} onSubmit={(e) => handleSubmit(e)}>
+      <form onSubmit={(e) => handleSubmit(e)}>
         <div className={s.name}>
           <h3>Nombre:</h3>
           <input
